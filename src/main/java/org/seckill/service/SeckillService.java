@@ -40,4 +40,10 @@ public interface SeckillService {
 	 */
 	SeckillExecution executeSeckill(long seckillId, long userPhone, String md5)
 		throws Exception;
+	
+	/**
+	 * 通过存储过程执行秒杀操作
+	 */
+	SeckillExecution executeSeckillByProcedure(long seckillId, 
+			long userPhone, String md5);
 }

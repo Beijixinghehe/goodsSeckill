@@ -2,6 +2,7 @@ package org.seckill.dao;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 import org.seckill.entity.Seckill;
@@ -30,4 +31,7 @@ public interface SeckillDao {
 	 * @return
 	 */
 	List<Seckill> queryAll(@Param("offet")int offet,@Param("limit")int limit);
+	
+	//使用储存过程执行秒杀
+	void killByProcedure(Map<String, Object> map);
 }

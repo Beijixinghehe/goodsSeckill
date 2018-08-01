@@ -1,7 +1,9 @@
 package org.seckill.service.impl;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -11,6 +13,7 @@ import org.seckill.dao.cache.RedisDao;
 import org.seckill.dto.Exposer;
 import org.seckill.dto.SeckillExecution;
 import org.seckill.entity.Seckill;
+import org.seckill.entity.SuccessKilled;
 import org.seckill.enums.SeckillStatEnum;
 import org.seckill.exception.RepeatKillException;
 import org.seckill.exception.SeckillCloseException;
@@ -107,7 +110,8 @@ public class SeckillServiceImpl implements SeckillService {
 	}
 	
 	/**
-	 * 执行秒杀
+	 * 1.
+	 * 普通执行秒杀
 	 */
 	@Override
 	@Transactional
@@ -148,6 +152,43 @@ public class SeckillServiceImpl implements SeckillService {
 			 */
 			throw new SeckillException("seckill inner error" + e.getMessage());
 		}		
+	}
+
+	
+	/**
+	 * 2.
+	 * 通过储存过程秒杀商品
+	 *
+	 */
+	public SeckillExecution executeSeckillByProcedure(long seckillId, long userPhone, String md5) {
+		
+		if(md5 == null || !md5.equals(getMD5(seckillId))) {
+			return new SeckillExecution(seckillId, SeckillStatEnum.DATE_REWRITE);
+		}
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		Date now = new Date();
+		map.put("seckillId", seckillId);
+		map.put("phone", userPhone);
+		map.put("killTime", now);
+		map.put("result", null);
+		try {
+			//执行储存过程，result被赋值
+			seckillDao.killByProcedure(map);
+			int result = (Integer) map.get("result");
+			if(result == 1) {
+				SuccessKilled sk = successKilledDao.queryByIdWithSeckill(seckillId, userPhone);
+				return new SeckillExecution(seckillId, 
+						SeckillStatEnum.SUCCESS, sk);
+			}else {
+				//如果秒杀不成功，根据result获取秒杀状态描述。
+				return new SeckillExecution(seckillId, SeckillStatEnum.stateOf(result));
+			}
+		} catch (Exception e) {
+			//如有异常，内部错误
+			return new SeckillExecution(seckillId, SeckillStatEnum.INNER_ERROR);		
+		}
+	
 	}
 
 }

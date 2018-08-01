@@ -101,7 +101,7 @@ public class SeckillController {
 			return new SeckillResult<SeckillExecution>(true, "未登录");
 		}
 		try {
-			SeckillExecution execution = seckillService.executeSeckill(seckillId, phone, md5);
+			SeckillExecution execution = seckillService.executeSeckillByProcedure(seckillId, phone, md5);
 			return new SeckillResult<SeckillExecution>(true, execution);
 		} catch (RepeatKillException e) {
 			SeckillExecution execution = new SeckillExecution(seckillId, SeckillStatEnum.REPEAT_KILL);
