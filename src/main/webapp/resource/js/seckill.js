@@ -22,6 +22,33 @@ var seckill = {
 			return false;
 		}
 	},
+	//弹出登录框
+	showKillPhoneBtn : function() {
+		var killPhoneModal = $('#killPhoneModal');
+		//显示弹出层
+		killPhoneModal.modal({
+			show : true,// 显示弹出层
+			backdrop : 'static',// 禁止鼠标拖拽位置关闭
+			keyboard : false
+		});
+		
+		$('#killPhoneBtn').click(function() {
+			//获取表单的值
+			var inputPhone = $('#killPhoneKey').val();
+			//如果输入的电话正确
+			if(seckill.validatePhone(inputPhone)){
+				//把phone存入cookie
+				//path表示访问/seckill路径下的url时才会把killPhone这个cookie传到后端
+				//可以减少不需要的cookie传到后端，减少发送量，和服务器接收量
+				$.cookie('killPhone',inputPhone,{expires:7,path:'/seckill'});
+				//刷新页面
+				window.location.reload();
+			}else{
+				$('#killPhoneMessage').hide().html('<label class="label label-danger text-center">手机号输入错误</label>').show(300);
+			}
+		});
+	},
+	
 	handlerSeckill : function(seckillId,seckillBox){ 
 		//向后台请求，获取exposer，判断是否暴露秒杀接口
 		$.post(seckill.URL.exposer(seckillId),{},function(result){
@@ -41,10 +68,16 @@ var seckill = {
 						//发送秒杀请求
 						$.post(seckillUrl,{},function(result){
 							if(result && result['success']){//请求成功
-								var execution = result['data'];
-								var state = execution['state'];
-								var stateInfo = execution['stateInfo'];
-								seckillBox.html('<span class="label label-success">' + stateInfo + '</span>');
+								var info;
+								if(result['data']){
+									var execution = result['data'];
+									var state = execution['state'];
+									info = execution['stateInfo'];
+									seckillBox.html('<span class="label label-success">' + info + '</span>');
+								}else{
+									seckill.showKillPhoneBtn();
+								}
+								
 							}else{//请求失败
 								seckillBox.html('<span class="label label-danger">请求失败!</span>');
 							}
@@ -99,32 +132,10 @@ var seckill = {
 			// 验证手机号
 			// 如果cookie中的手机号为空或者有误
 			if (!seckill.validatePhone(killPhone)) {
+				// 弹出登录框
 				// 绑定phone
 				// 控制输出
-				
-				var killPhoneModal = $('#killPhoneModal');
-				//显示弹出层
-				killPhoneModal.modal({
-					show : true,// 显示弹出层
-					backdrop : 'static',// 禁止鼠标拖拽位置关闭
-					keyboard : false
-				});
-				
-				$('#killPhoneBtn').click(function() {
-					//获取表单的值
-					var inputPhone = $('#killPhoneKey').val();
-					//如果输入的电话正确
-					if(seckill.validatePhone(inputPhone)){
-						//把phone存入cookie
-						//path表示访问/seckill路径下的url时才会把killPhone这个cookie传到后端
-						//可以减少不需要的cookie传到后端，减少发送量，和服务器接收量
-						$.cookie('killPhone',inputPhone,{expires:7,path:'/seckill'});
-						//刷新页面
-						window.location.reload();
-					}else{
-						$('#killPhoneMessage').hide().html('<label class="label label-danger text-center">手机号输入错误</label>').show(300);
-					}
-				});
+				seckill.showKillPhoneBtn();
 			}
 			//已经登录
 			//计时交互
