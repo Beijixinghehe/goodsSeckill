@@ -1,5 +1,5 @@
-高并发商品秒杀系统
-
+高并发秒杀系统
+系统用于商品秒杀活动，或抢红包活动
 系统使用maven构建项目
 后端使用：spring，springmvc，mybatis，redis
 前端使用：jquery,bootstrap
